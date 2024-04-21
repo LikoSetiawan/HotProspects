@@ -5,6 +5,7 @@
 //  Created by Liko Setiawan on 21/04/24.
 //
 
+import CoreImage
 import CoreImage.CIFilterBuiltins
 import SwiftUI
 
@@ -15,6 +16,8 @@ struct MeView: View {
     let context = CIContext()
     let filter = CIFilter.qrCodeGenerator()
     
+    @State private var qrCode = UIImage()
+    
     var body: some View {
         NavigationStack{
             Form{
@@ -24,13 +27,19 @@ struct MeView: View {
                 TextField("Email Address", text: $emailAddress)
                     .textContentType(.emailAddress)
                     .font(.title)
-                Image(uiImage: generateQRCode(from: "\(name)\n\(emailAddress)"))
+                Image(uiImage: qrCode)
                     .interpolation(.none)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 200, height: 200)
+                    .contextMenu{
+                        ShareLink(item: Image(uiImage: qrCode), preview: SharePreview("My QR Code", image: Image(uiImage: qrCode)))
+                    }
             }
             .navigationTitle("Your QR Code")
+            .onAppear(perform: updateCode)
+            .onChange(of: name, updateCode)
+            .onChange(of: emailAddress, updateCode)
         }
     }
     
@@ -44,6 +53,10 @@ struct MeView: View {
         }
         return UIImage(systemName: "xmark.circle") ?? UIImage()
         
+    }
+    
+    func updateCode() {
+       qrCode = generateQRCode(from: "\(name)\n\(emailAddress)")
     }
 }
 
